@@ -1,4 +1,4 @@
-module main
+module pds-go
 
 go 1.24.1
 
