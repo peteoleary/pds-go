@@ -9,8 +9,17 @@ import (
 )
 
 type Model[T any] interface {
+	database_location() string
 	table_name() string
 	load_data(row *sql.Row) T
+}
+
+func open_database[T any](model Model[T]) *sql.DB {
+	db, err := sql.Open("sqlite3", model.database_location())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return db
 }
 
 func find_by_key[T any](model Model[T], db *sql.DB, key string, value string) T {
@@ -28,6 +37,10 @@ type Account struct {
 	invitesDisabled  int
 }
 
+func (a Account) database_location() string {
+	return "../pds-data/account.sqlite"
+}
+
 func (a Account) table_name() string {
 	return "account"
 }
@@ -42,10 +55,14 @@ func (a Account) load_data(row *sql.Row) Account {
 type Actor struct {
 	did           string
 	handle        string
-	createdAt     sql.NullTime
-	takedownRef   string
+	createdAt     string
+	takedownRef   sql.NullString
 	deactivatedAt sql.NullTime
 	deleteAfter   sql.NullTime
+}
+
+func (a Actor) database_location() string {
+	return "../pds-data/account.sqlite"
 }
 
 func (a Actor) table_name() string {
@@ -61,12 +78,16 @@ func (a Actor) load_data(row *sql.Row) Actor {
 
 func main() {
 
-	db, err := sql.Open("sqlite3", "../pds-data/account.sqlite")
-	if err != nil {
-		log.Fatal(err)
+	account := Account{}
+	var db = open_database(account)
+	if db == nil {
+		log.Fatal("Failed to open database")
 	}
 	defer db.Close()
 
-	accountData := find_by_key(Account{}, db, "email", "bksy@timelight.com")
+	accountData := find_by_key(account, db, "email", "bksy@timelight.com")
 	fmt.Printf("Account: %+v\n", accountData)
+
+	actorData := find_by_key(Actor{}, db, "handle", "pete.bsky.timelight.com")
+	fmt.Printf("Actor: %+v\n", actorData)
 }
