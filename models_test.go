@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -16,14 +17,13 @@ func TestHashDid(t *testing.T) {
 
 func TestGetActorDirectory(t *testing.T) {
 	did := "did:plc:2yn32k65auyhjo2thnya3hlg"
-	// TODO: this directory should be relative to the base pds-data directory
-	expectedDirectory := "../pds-data/actor/35/did:plc:2yn32k65auyhjo2thnya3hlg"
+	expectedDirectorySuffix := "35/did:plc:2yn32k65auyhjo2thnya3hlg"
 
 	actor := Actor{
 		did: did,
 	}
 	directory := actor.get_actor_directory()
-	if directory != expectedDirectory {
-		t.Errorf("Expected %s, got %s", expectedDirectory, directory)
+	if !strings.HasSuffix(directory, expectedDirectorySuffix) {
+		t.Errorf("Expected %s, got %s", expectedDirectorySuffix, directory)
 	}
 }

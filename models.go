@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -39,7 +40,7 @@ type Account struct {
 }
 
 func (a Account) database_location() string {
-	return "../pds-data/account.sqlite"
+	return fmt.Sprintf("%s/account.sqlite", os.Getenv("PDS_DATA_DIRECTORY"))
 }
 
 func (a Account) table_name() string {
@@ -63,7 +64,7 @@ type Actor struct {
 }
 
 func (a Actor) database_location() string {
-	return "../pds-data/account.sqlite"
+	return fmt.Sprintf("%s/account.sqlite", os.Getenv("PDS_DATA_DIRECTORY"))
 }
 
 func (a Actor) table_name() string {
@@ -88,6 +89,6 @@ func hash_did(did string) string {
 
 func (a Actor) get_actor_directory() string {
 	hash := hash_did(a.did)
-	directory := fmt.Sprintf("../pds-data/actor/%s/%s", hash[:2], a.did)
+	directory := fmt.Sprintf("%s/%s/%s", os.Getenv("PDS_ACTOR_STORE_DIRECTORY"), hash[:2], a.did)
 	return directory
 }

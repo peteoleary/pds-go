@@ -4,10 +4,16 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
 
 	account := Account{}
 	var db = open_database(account)
