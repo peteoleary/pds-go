@@ -27,3 +27,23 @@ func TestGetActorDirectory(t *testing.T) {
 		t.Errorf("Expected %s, got %s", expectedDirectorySuffix, directory)
 	}
 }
+
+func set_test_env(t *testing.T) {
+	t.Setenv("PDS_DATA_DIRECTORY", "./testdata")
+	t.Setenv("PDS_ACTOR_STORE_DIRECTORY", "./testdata/actors")
+}
+
+func TestGetRecordDatabaseLocation(t *testing.T) {
+	set_test_env(t)
+
+	did := "did:plc:2yn32k65auyhjo2thnya3hlg"
+	expectedDirectorySuffix := "00/did:plc:"
+
+	record := Record{
+		actor_did: did,
+	}
+	directory := record.database_location()
+	if !strings.HasSuffix(directory, expectedDirectorySuffix) {
+		t.Errorf("Expected %s, got %s", expectedDirectorySuffix, directory)
+	}
+}

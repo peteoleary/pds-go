@@ -17,7 +17,9 @@ type Model[T any] interface {
 }
 
 func open_database[T any](model Model[T]) *sql.DB {
-	db, err := sql.Open("sqlite3", model.database_location())
+	var location = model.database_location()
+	log.Printf("Opening database at %s\n", location)
+	db, err := sql.Open("sqlite3", location)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -91,4 +93,29 @@ func (a Actor) get_actor_directory() string {
 	hash := hash_did(a.did)
 	directory := fmt.Sprintf("%s/%s/%s", os.Getenv("PDS_ACTOR_STORE_DIRECTORY"), hash[:2], a.did)
 	return directory
+}
+
+type Record struct {
+	actor_did   string // set this to the actor's did
+	uri         string
+	cid         string
+	collection  string
+	rkey        string
+	repoRev     string
+	indexedAt   string
+	takedownRef sql.NullString
+}
+
+func (r Record) database_location() string {
+	return fmt.Sprintf("%s/store.sqlite", Actor{did: r.actor_did}.get_actor_directory())
+}
+func (r Record) table_name() string {
+	return "record"
+}
+func (r Record) load_data(row *sql.Row) Record {
+	err := row.Scan(&r.uri, &r.cid, &r.collection, &r.rkey, &r.repoRev, &r.indexedAt, &r.takedownRef)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return r
 }
