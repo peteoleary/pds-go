@@ -13,7 +13,7 @@ import (
 type Model[T any] interface {
 	database_location() string
 	table_name() string
-	load_data(row *sql.Row) T
+	load_data(row *sql.Rows) T
 }
 
 func open_database[T any](model Model[T]) *sql.DB {
@@ -28,9 +28,32 @@ func open_database[T any](model Model[T]) *sql.DB {
 
 func find_by_key[T any](model Model[T], db *sql.DB, key string, value string) T {
 	sqlStmt := fmt.Sprintf("select * from %s where %s = ?", model.table_name(), key)
-	row := db.QueryRow(sqlStmt, value)
+	row, err := db.Query(sqlStmt, value)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer row.Close()
+	if !row.Next() {
+		log.Fatal("No rows returned")
+	}
 
 	return model.load_data(row)
+}
+
+func find_all[T any](model Model[T], db *sql.DB) []T {
+	sqlStmt := fmt.Sprintf("select * from %s", model.table_name())
+	rows, err := db.Query(sqlStmt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+
+	var results []T
+	for rows.Next() {
+		row := model.load_data(rows)
+		results = append(results, row)
+	}
+	return results
 }
 
 type Account struct {
@@ -48,7 +71,7 @@ func (a Account) database_location() string {
 func (a Account) table_name() string {
 	return "account"
 }
-func (a Account) load_data(row *sql.Row) Account {
+func (a Account) load_data(row *sql.Rows) Account {
 	err := row.Scan(&a.did, &a.email, &a.passwordScrypt, &a.emailConfirmedAt, &a.invitesDisabled)
 	if err != nil {
 		log.Fatal(err)
@@ -72,7 +95,7 @@ func (a Actor) database_location() string {
 func (a Actor) table_name() string {
 	return "actor"
 }
-func (a Actor) load_data(row *sql.Row) Actor {
+func (a Actor) load_data(row *sql.Rows) Actor {
 	err := row.Scan(&a.did, &a.handle, &a.createdAt, &a.takedownRef, &a.deactivatedAt, &a.deleteAfter)
 	if err != nil {
 		log.Fatal(err)
@@ -112,7 +135,7 @@ func (r Record) database_location() string {
 func (r Record) table_name() string {
 	return "record"
 }
-func (r Record) load_data(row *sql.Row) Record {
+func (r Record) load_data(row *sql.Rows) Record {
 	err := row.Scan(&r.uri, &r.cid, &r.collection, &r.rkey, &r.repoRev, &r.indexedAt, &r.takedownRef)
 	if err != nil {
 		log.Fatal(err)

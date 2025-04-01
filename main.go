@@ -36,6 +36,8 @@ func main() {
 		log.Fatal("Failed to open store database")
 	}
 	defer record_db.Close()
-	recordData := find_by_key(record, record_db, "uri", "at://did:plc:2yn32k65auyhjo2thnya3hlg/app.bsky.feed.post/3lhab2cuszs22")
-	fmt.Printf("Record: %+v\n", recordData)
+	records := find_all(record, record_db)
+	for _, record := range records {
+		fmt.Printf("\nRECORD: %+v\n", record)
+	}
 }
